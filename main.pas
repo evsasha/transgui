@@ -6113,7 +6113,7 @@ begin
         end;
         
         // Add subfolder prefix to folder name
-        lvFilter.Items[ 0, j]:=UTF8Decode(Format('%s (%d)', [s, ptruint(Paths.Objects[i])]));
+        lvFilter.Items[ 0, j]:=folderDepthSpacer+UTF8Decode(Format('%s (%d)', [s, ptruint(Paths.Objects[i])]));
         lvFilter.Items[-1, j]:=UTF8Decode(Paths[i]);
         if Paths[i] = PathFilter then
           crow:=j;

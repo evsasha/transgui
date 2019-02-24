@@ -5647,6 +5647,12 @@ var
   Paths: TStringList;
   v: variant;
   FieldExists: array of boolean;
+
+  // Subfolder
+  folderDepths: array of integer;
+  folderDepthRelative,folderDepthMin:integer;
+  folderDepthSpacer:string;
+  
 begin
   if gTorrents.Tag <> 0 then exit;
   if list = nil then begin
@@ -6076,6 +6082,17 @@ begin
       lvFilter.Items[0, j]:=NULL;
       Inc(j);
 
+      // Get Depths for all forlders
+      SetLength(folderDepths, Paths.Count);
+      for i := 0 to Paths.Count - 1 do begin
+          folderDepths[i]:=WordCount(Paths[i],['/']);
+      end;
+      // Get Min Depth
+      folderDepthMin := 255;
+      for i := 0 to length(folderDepths) - 1 do begin
+        if folderDepths[i]<folderDepthMin then folderDepthMin:=folderDepths[i]
+      end;
+      
       for i:=0 to Paths.Count - 1 do begin
         s:=ExtractFileName(Paths[i]);
         for row:=StatusFiltersCount + 1 to j - 1 do
@@ -6083,6 +6100,19 @@ begin
             s:=Paths[i];
             lvFilter.Items[0, row]:=UTF8Decode(Format('%s (%d)', [UTF8Encode(widestring(lvFilter.Items[-1, row])), ptruint(Paths.Objects[row - StatusFiltersCount - 1])]));
           end;
+        // Get relative depth and set spacer
+        folderDepthRelative := folderDepths[i] - folderDepthMin;
+        folderDepthSpacer := '';
+
+        if folderDepthRelative <> 0 then begin
+          // Ensure folder last in group or at all
+          if (folderDepths[i+1] - folderDepthMin = 0) or (i = (Paths.Count - 1)) then
+            folderDepthSpacer := UTF8Decode('    ┖' + DupeString('──',folderDepthRelative) + ' ')
+          else
+            folderDepthSpacer := UTF8Decode('    ┠' + DupeString('──',folderDepthRelative) + ' ');
+        end;
+        
+        // Add subfolder prefix to folder name
         lvFilter.Items[ 0, j]:=UTF8Decode(Format('%s (%d)', [s, ptruint(Paths.Objects[i])]));
         lvFilter.Items[-1, j]:=UTF8Decode(Paths[i]);
         if Paths[i] = PathFilter then
